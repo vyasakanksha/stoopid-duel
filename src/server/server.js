@@ -2,11 +2,9 @@ const express = require("express");
 const socket = require('socket.io');
 const app = express();
 let Player = require("./Player");
-const csv = require('csv-parser')
 const fs = require('fs')
-let server = app.listen(80);
+let server = app.listen(3000);
 app.use(express.static("public"));
-
 
 let io = socket(server);
 let players = [];
@@ -16,24 +14,13 @@ preloadWords()
 setInterval(updateGame, 16);
 
 io.sockets.on("connection", socket => {
-  console.log("lengthofwords", words.length)
   console.log(`New connection ${socket.id}`);
   players.push(new Player(socket.id));
-  deal(socket.id)
+  deal(socket.id, 7)
 
   socket.on("disconnect", () => {
     io.sockets.emit("disconnect", socket.id);
     players = players.filter(player => player.id !== socket.id);
-  });
-
-  socket.on("deal", data => {
-    console.log("deal", data)
-    deal(data.playerID, data.Count)
-  });
-
-  socket.on("play", data => {
-    console.log("play", data)
-    play(data.playerID, data.playedWords)
   });
 });
 
@@ -55,43 +42,3 @@ function preloadWords() {
   }
   return words;
 }
-
-
-function getDealtWords(count) {
-  dealtWords = []
-  for (let i = 0; i < count; i++) {
-    j = Math.floor(Math.random()*words.length)
-    dealtWords.push(words[j])
-    words.splice(j, 1);
-  }
-  return dealtWords
-}
-
-function deal(playedID, count = 5) {
-  var currentPlayer = players.filter(function(player) {
-    return player.id === playedID;
-  })[0];
-  let dealtWords = getDealtWords(count)
-  console.log("before", currentPlayer.words)
-  currentPlayer.deal(dealtWords)
-  console.log("after", currentPlayer.words)
-  io.sockets.emit("dealt", currentPlayer);
-}
-
-function play(playedID, words) {
-  var currentPlayer = players.filter(function(player) {
-    return player.id === playedID;
-  })[0];
-  data = {}
-  data.player = currentPlayer
-  data.words = words
-  io.sockets.emit("played", data);
-}
-
-
-
-
-
-
-
-

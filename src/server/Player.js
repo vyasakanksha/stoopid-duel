@@ -5,7 +5,7 @@ class Player {
     this.id = id;
     this.words = []
 
-    this.rgb = {
+    this.colour = {
       r: Math.random() * 255,
       g: Math.random() * 255,
       b: Math.random() * 255,
